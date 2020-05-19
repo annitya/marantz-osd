@@ -1,0 +1,5 @@
+﻿  Reading Qt configuration (C:\Program Files\qt\5.12.8\msvc2017_64\bin\qmake.exe)
+  rcc qml.qrc
+  main.cpp
+  qrc_qml.cpp
+  marantz-osd.vcxproj -> C:\Users\henni\source\repos\osd-new\x64\Debug\marantz-osd.exe
