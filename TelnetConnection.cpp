@@ -1,56 +1,109 @@
 
-#include "TelnetConnection.h"
 #include <string>
 #include <WS2tcpip.h>
+#include <qobject.h>
+#include <qstring.h>
+#include <qtimer.h>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
 using namespace std;
 
 #pragma once
 #pragma comment(lib, "WS2_32")
-void TelnetConnection::connectMarantz() {         
-    WSADATA wsaData;
+class TelnetConnection
+{
+private:
+    SOCKET marantzSocket;
+    string address;
+    QObject* textContainer;    
+
+    string parseMessage(char *buffer) {
+        string value = (string)buffer;
+
+        int valueEndIndex = value.find("\r");       
+        string numberPart = value.substr(2, valueEndIndex - 2);
+        // MVMAX 80\rAX 80\r => max volume
+        if (numberPart[0] == 'M') { 
+            return "";
+        }
+        // MV47\r 80\rAX 80\r => current integer volume
+        if (numberPart.length() == 2) {
+            return numberPart;
+        }
+        // MV475\r80\rAX 80\r => current volume with "decimal"
+        if (numberPart.length() == 3) {
+            return numberPart.substr(0, 2) + "." + numberPart[2];
+        }
+
+        return "";
+    }
+
+public:
+    TelnetConnection(string address, QObject* textContainer) {        
+        this->address = address;
+        this->textContainer = textContainer;
+    }
+
+    bool open()
+    {
+        WSADATA wsaData;
+
+        int iR = WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+        if (iR != 0) {
+            return false;
+        }
+
+        marantzSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+        if (marantzSocket == INVALID_SOCKET) {
+            WSACleanup();
+            return false;
+        }
+
+        sockaddr_in addr;
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = inet_addr(address.c_str());
+        addr.sin_port = htons(23);
+
+        int connectionResult = connect(marantzSocket, (SOCKADDR*)&addr, sizeof(addr));
+
+        if (connectionResult == SOCKET_ERROR) {
+            WSACleanup();
+            return false;
+        }
         
-    int iR = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    
-    if (iR != 0) {
-        return;
-    }
-    
-    SOCKET server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    if (server == INVALID_SOCKET) {
-        WSACleanup();
-        return;
+        return true;
     }
 
-    sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = inet_addr("192.168.10.128");
-    addr.sin_port = htons(23);
+    string getCurrentMessage() {
+        int receiveResult;
+        char buff[2048];
+               
+        receiveResult = recv(marantzSocket, buff, sizeof(buff), 0);
 
-    int connectionResult = connect(server, (SOCKADDR*)&addr, sizeof(addr));
-
-    if (connectionResult == SOCKET_ERROR) {
-        WSACleanup();           
-        return;
+        if (receiveResult == SOCKET_ERROR) {
+            // WSACleanup();
+            return "";
+        }
+        
+        return parseMessage(buff);
     }
 
-    int receiveResult;
-    char buff[2048];
+    void beginUpdates() {
+        QTimer::singleShot(50, [this] {
+            string currentValue = this->getCurrentMessage();
 
-    int i = 0;
+            if (currentValue.length() > 0) {
+                this - textContainer->setProperty("text", QString::fromStdString(currentValue));
+            }
+            
+            this->beginUpdates();
+        });        
+    }
 
-    do {
-        receiveResult = recv(server, buff, sizeof(buff), 0);
-
-        i++;
-    } while (i < 100);
-
-    
-    if (receiveResult == SOCKET_ERROR) {
-        WSACleanup();
-        return;
-    }                  
-
-    WSACleanup();
-}
+    void close() {
+        closesocket(marantzSocket);
+    }
+};
