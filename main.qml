@@ -1,9 +1,8 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
 
-Window {    
-    flags: Qt.WA_TranslucentBackground
-    //flags: Qt.FramelessWindowHint | Qt.WA_TranslucentBackground
+Window {        
+    flags: Qt.FramelessWindowHint | Qt.WA_TranslucentBackground
     visible: true
     width: 640
     height: 480
