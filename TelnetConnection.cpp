@@ -1,5 +1,7 @@
 
 #include <string>
+#include <iomanip>
+#include <sstream>
 #include <WS2tcpip.h>
 #include <qobject.h>
 #include <qstring.h>
@@ -18,22 +20,33 @@ private:
     string address;
     QObject* textContainer;    
 
+    string formatMessage(string message) {
+        float value = stof(message) - 80;
+        
+        stringstream stream;
+        stream << fixed << setprecision(1) << value;
+        string dbValue = stream.str();
+       
+        return dbValue + " dB";
+    }
+
     string parseMessage(char *buffer) {
         string value = (string)buffer;
 
-        int valueEndIndex = value.find("\r");       
-        string numberPart = value.substr(2, valueEndIndex - 2);
+        int valueEndIndex = value.find("\r") - 2;       
+        string numberPart = value.substr(2, valueEndIndex);
         // MVMAX 80\rAX 80\r => max volume
         if (numberPart[0] == 'M') { 
             return "";
         }
         // MV47\r 80\rAX 80\r => current integer volume
         if (numberPart.length() == 2) {
-            return numberPart;
+            return formatMessage(numberPart);
         }
         // MV475\r80\rAX 80\r => current volume with "decimal"
         if (numberPart.length() == 3) {
-            return numberPart.substr(0, 2) + "." + numberPart[2];
+            string numberValue = numberPart.substr(0, 2) + "." + numberPart[2];
+            return formatMessage(numberValue);
         }
 
         return "";
@@ -91,14 +104,14 @@ public:
         return parseMessage(buff);
     }
 
-    void beginUpdates() {
-        QTimer::singleShot(50, [this] {
+    void beginUpdates() {        
+        QTimer::singleShot(0, [this] {
             string currentValue = this->getCurrentMessage();
-
+           
             if (currentValue.length() > 0) {
-                this - textContainer->setProperty("text", QString::fromStdString(currentValue));
+                this->textContainer->setProperty("text", QString::fromStdString(currentValue));                                
             }
-            
+
             this->beginUpdates();
         });        
     }
