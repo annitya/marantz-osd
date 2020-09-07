@@ -5,7 +5,7 @@ Window {
     id: mainWindow
     objectName: "mainWindow"
     flags: Qt.FramelessWindowHint | Qt.WA_TranslucentBackground | Qt.WindowStaysOnTopHint | Qt.Tool | Qt.WindowTransparentForInput
-    x: 1670
+    x: 1700
     y: 980
     width: 200
     height: 80
@@ -13,10 +13,15 @@ Window {
     color: "#00000000"
     Text {
         id: textContainer        
+        text: messageConnection.message
         objectName: "textContainer"        
         color: "#00FF00"
         font.pixelSize: 50
         anchors.right: parent.right
         anchors.bottom: parent.bottom         
+
+        Component.onCompleted: {
+            messageConnection.startMonitor();
+        }
     }  
 }

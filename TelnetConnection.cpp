@@ -3,59 +3,21 @@
 #include <iomanip>
 #include <sstream>
 #include <WS2tcpip.h>
-#include <qobject.h>
 #include <qstring.h>
-#include <qtimer.h>
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
 
 using namespace std;
 
 #pragma once
 #pragma comment(lib, "WS2_32")
 class TelnetConnection
-{
+{   
 private:
     SOCKET marantzSocket;
-    string address;
-    QObject* textContainer;    
-
-    string formatMessage(string message) {
-        float value = stof(message) - 80;
-        
-        stringstream stream;
-        stream << fixed << setprecision(1) << value;
-        string dbValue = stream.str();
-       
-        return dbValue + " dB";
-    }
-
-    string parseMessage(char *buffer) {
-        string value = (string)buffer;
-
-        int valueEndIndex = value.find("\r") - 2;       
-        string numberPart = value.substr(2, valueEndIndex);
-        // MVMAX 80\rAX 80\r => max volume
-        if (numberPart[0] == 'M') { 
-            return "";
-        }
-        // MV47\r 80\rAX 80\r => current integer volume
-        if (numberPart.length() == 2) {
-            return formatMessage(numberPart);
-        }
-        // MV475\r80\rAX 80\r => current volume with "decimal"
-        if (numberPart.length() == 3) {
-            string numberValue = numberPart.substr(0, 2) + "." + numberPart[2];
-            return formatMessage(numberValue);
-        }
-
-        return "";
-    }
-
-public:
-    TelnetConnection(string address, QObject* textContainer) {        
-        this->address = address;
-        this->textContainer = textContainer;
+    string address;     
+   
+public:   
+    TelnetConnection(string address) {        
+        this->address = address;        
     }
 
     bool open()
@@ -90,7 +52,7 @@ public:
         return true;
     }
 
-    string getCurrentMessage() {
+    char* getCurrentMessage() {
         int receiveResult;
         char buff[2048];
                
@@ -101,21 +63,9 @@ public:
             return "";
         }
         
-        return parseMessage(buff);
+        return buff;
     }
-
-    void beginUpdates() {        
-        QTimer::singleShot(0, [this] {
-            string currentValue = this->getCurrentMessage();
-           
-            if (currentValue.length() > 0) {
-                this->textContainer->setProperty("text", QString::fromStdString(currentValue));                                
-            }
-
-            this->beginUpdates();
-        });        
-    }
-
+    
     void close() {
         closesocket(marantzSocket);
     }

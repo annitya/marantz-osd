@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include "TelnetConnection.cpp"
+#include <QQmlContext>
+#include "MessageConnection.h";
 
 int main(int argc, char* argv[])
 {
@@ -9,25 +10,17 @@ int main(int argc, char* argv[])
 #endif
 
     QGuiApplication app(argc, argv);
-
+   
     QQmlApplicationEngine engine;
+
+    MessageConnection messageConnection;
+    engine.rootContext()->setContextProperty("messageConnection", &messageConnection);
+
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     if (engine.rootObjects().isEmpty()) {
         return -1;
     }
-
-    QObject* rootObject = engine.rootObjects().first();
-    QObject* textContainer = rootObject->findChild<QObject*>("textContainer");
-
-    TelnetConnection* connection = new TelnetConnection("192.168.10.128", textContainer);
-    bool result = connection->open();
-
-    if (!result) {
-        return -1;
-    }
-            
-    connection->beginUpdates();
-
+                                    
     return app.exec();
 }
