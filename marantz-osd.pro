@@ -24,3 +24,4 @@ SOURCES += main.cpp \
            TelnetConnection.cpp \
            x64/Debug/rcc/qrc_qml.cpp
 RESOURCES += qml.qrc
+QT += qml

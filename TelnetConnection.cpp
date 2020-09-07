@@ -1,4 +1,3 @@
-
 #include <string>
 #include <iomanip>
 #include <sstream>
@@ -7,7 +6,6 @@
 
 using namespace std;
 
-#pragma once
 #pragma comment(lib, "WS2_32")
 class TelnetConnection
 {   
@@ -60,7 +58,7 @@ public:
 
         if (receiveResult == SOCKET_ERROR) {
             // WSACleanup();
-            return "";
+            return new char[0];
         }
         
         return buff;

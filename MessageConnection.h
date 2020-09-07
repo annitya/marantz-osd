@@ -15,7 +15,7 @@ private:
 	TelnetConnection* connection;
 	string _message;
 	string formatMessage(string message);
-	string parseMessage(char* buffer);
+	string parseMessage(string value);
 
 public:
 	MessageConnection();
@@ -26,4 +26,5 @@ private slots:
 
 public slots:
 	void startMonitor();
+	void logMessage();
 };

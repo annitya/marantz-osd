@@ -2,7 +2,7 @@
 #include "MessageConnection.h"
 
 MessageConnection::MessageConnection() {
-    _message = "lel";
+    _message = "";
     connection = new TelnetConnection("192.168.10.128");
     connection->open();
 }
@@ -18,9 +18,7 @@ string MessageConnection::formatMessage(string message) {
     return dbValue + " dB";
 }
 
-string MessageConnection::parseMessage(char* buffer) {
-    string value = (string)buffer;
-
+string MessageConnection::parseMessage(string value) {    
     if (value.length() == 0) {
         return "";
     }
@@ -48,17 +46,22 @@ QString MessageConnection::message() {
 	return QString::fromStdString(_message);
 }
 
-void MessageConnection::getCurrentMessage() {
-    char* message = connection->getCurrentMessage();
+void MessageConnection::getCurrentMessage() {        
+    string rawMessage = (string)connection->getCurrentMessage();
+    string message = parseMessage(rawMessage);
     
-    if (message != "") {
-        _message = parseMessage(message);
-        emit messageChanged();
+    if (message.length() > 0) {     
+        _message = message;    
+        emit messageChanged();        
     }
-
-    QTimer::singleShot(0, this, SLOT(getCurrentMessage()));
+    
+    QTimer::singleShot(0, this, SLOT(getCurrentMessage()));        
 }
 
 void MessageConnection::startMonitor() {
-    QTimer::singleShot(0, this, SLOT(getCurrentMessage()));
+    QTimer::singleShot(0, this, SLOT(getCurrentMessage()));    
+}
+
+void MessageConnection::logMessage() {
+    OutputDebugString(L"text-changed");
 }

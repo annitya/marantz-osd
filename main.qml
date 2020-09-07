@@ -18,10 +18,28 @@ Window {
         color: "#00FF00"
         font.pixelSize: 50
         anchors.right: parent.right
-        anchors.bottom: parent.bottom         
+        anchors.bottom: parent.bottom
+        opacity: 0
+                        
+        onTextChanged: {
+            if (fader.running) {
+                fader.stop();
+            }
 
-        Component.onCompleted: {
+            fader.start();
+        }
+
+        Component.onCompleted: {            
             messageConnection.startMonitor();
         }
-    }  
+    }
+    
+    OpacityAnimator {
+        id: fader
+        target: textContainer
+        from: 1
+        to: 0
+        duration: 500
+    }
+    
 }
