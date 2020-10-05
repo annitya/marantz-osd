@@ -1,9 +1,10 @@
 #include <qtimer.h>
+#include <qthread.h>
 #include "MessageConnection.h"
 
 MessageConnection::MessageConnection() {
     _message = "";
-    connection = new TelnetConnection("192.168.10.128");
+    connection = new TelnetConnection("192.168.10.127");
     connection->open();
 }
 
@@ -47,21 +48,29 @@ QString MessageConnection::message() {
 }
 
 void MessageConnection::getCurrentMessage() {        
-    string rawMessage = (string)connection->getCurrentMessage();
-    string message = parseMessage(rawMessage);
-    
-    if (message.length() > 0) {     
-        _message = message;    
-        emit messageChanged();        
-    }
-    
-    QTimer::singleShot(0, this, SLOT(getCurrentMessage()));        
+    QThread* messageThread = QThread::create([this] {
+        string rawMessage = (string)connection->getCurrentMessage();
+        string bogusMessage = connection->getCurrentMessage();
+        logMessage(bogusMessage);
+        string message = parseMessage(rawMessage);
+
+        if (message.length() > 0) {            
+            _message = message;
+            emit messageChanged();
+        }
+
+        QTimer::singleShot(0, this, SLOT(getCurrentMessage()));
+    });
+        
+    messageThread->start();
+    logMessage("Started thread.");    
 }
 
 void MessageConnection::startMonitor() {
     QTimer::singleShot(0, this, SLOT(getCurrentMessage()));    
 }
 
-void MessageConnection::logMessage() {
-    OutputDebugString(L"text-changed");
+void MessageConnection::logMessage(string message) {
+    wstring wideString = std::wstring(message.begin(), message.end());
+    OutputDebugString(wideString.c_str());
 }

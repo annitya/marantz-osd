@@ -26,5 +26,5 @@ private slots:
 
 public slots:
 	void startMonitor();
-	void logMessage();
+	void logMessage(string message);
 };

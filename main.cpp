@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     MessageConnection messageConnection;
     engine.rootContext()->setContextProperty("messageConnection", &messageConnection);
 
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));    
 
     if (engine.rootObjects().isEmpty()) {
         return -1;

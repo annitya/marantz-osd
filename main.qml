@@ -1,10 +1,11 @@
-import QtQuick 2.12
-import QtQuick.Window 2.12
+import QtQuick 2.6
+import QtQuick.Window 2.3
+import Qt.labs.platform 1.1
 
 Window {        
     id: mainWindow
     objectName: "mainWindow"
-    flags: Qt.FramelessWindowHint | Qt.WA_TranslucentBackground | Qt.WindowStaysOnTopHint | Qt.Tool | Qt.WindowTransparentForInput
+    flags: Qt.FramelessWindowHint | Qt.WA_TranslucentBackground | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
     x: 1700
     y: 980
     width: 200
@@ -21,16 +22,16 @@ Window {
         anchors.bottom: parent.bottom
         opacity: 0
                         
-        onTextChanged: {
+        onTextChanged: {                  
             if (fader.running) {
-                fader.stop();
+                fader.stop()
             }
 
-            fader.start();
+            fader.start()
         }
 
         Component.onCompleted: {            
-            messageConnection.startMonitor();
+            messageConnection.startMonitor()
         }
     }
     
@@ -39,7 +40,24 @@ Window {
         target: textContainer
         from: 1
         to: 0
-        duration: 500
+        duration: 850        
+    }    
+
+    SystemTrayIcon {
+        id: trayIcon        
+        visible: true
+        iconSource: "qrc:/amplifier.png"
+        onActivated: trayMenu.open()
+
+        menu: Menu {
+            id: trayMenu                        
+            MenuItem {                
+                text: "Quit"
+                onTriggered: {
+                    trayMenu.close()
+                    Qt.quit()
+                }
+            }
+        }
     }
-    
 }
